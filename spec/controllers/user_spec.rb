@@ -111,8 +111,9 @@ RSpec.describe UsersController, type: :controller do
     
         context "with valid attributes" do
           it "located the requested @user" do
-            put :update, params: { id: @user.id },  params: { "user" => { first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, username: Faker::Internet.username(specifier: 5..8) }} 
-            expect(assigns(:user)).to eq(@user)     
+            put :update, params: {
+                id: @user.id, user: { "user" => { first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, username: Faker::Internet.username(specifier: 5..8) }}} 
+                expect(assigns(:user)).to eq(@user)      
           end
         
         #   it "changes @user's attributes" do
