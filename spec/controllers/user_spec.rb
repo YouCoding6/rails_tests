@@ -98,7 +98,7 @@ RSpec.describe UsersController, type: :controller do
             end
             
             it "re-renders the new method" do
-              post :create, params: { "user" => { first_name: Faker::Name.first_name } }
+              post :create, params: { user: { first_name: Faker::Name.first_name } }
               response.should render_template :new
             end
         end 
@@ -110,46 +110,72 @@ RSpec.describe UsersController, type: :controller do
         end
     
         context "with valid attributes" do
-          it "located the requested @user" do
+            it "located the requested @user" do
+                put :update, params: {
+                    id: @user.id, user: { first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, username: Faker::Internet.username(specifier: 5..8) }}
+                    expect(assigns(:user)).to eq(@user)      
+            end
+        
+            it "changes @user's attributes" do
+                first_name = Faker::Name.first_name
+                last_name = Faker::Name.last_name
+                username = Faker::Internet.username(specifier: 5..8)
+                put :update, params: { 
+                    id: @user.id, user: {first_name: first_name, last_name:last_name, username:username}}
+                @user.reload
+                @user.first_name.should eq(first_name)
+                @user.last_name.should eq(last_name)
+                @user.username.should eq(username)
+            end
+        
+          it "redirects to the updated contact" do
             put :update, params: {
-                id: @user.id, user: { "user" => { first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, username: Faker::Internet.username(specifier: 5..8) }}} 
-                expect(assigns(:user)).to eq(@user)      
+                id: @user.id, user: { "user" => { first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, username: Faker::Internet.username(specifier: 5..8) }}}
+            # redirige où tu veux
+            response.should redirect_to @user
           end
+        end
         
-        #   it "changes @user's attributes" do
-        #     email = Faker::Internet.email
-        #     password = Faker::Internet.password
-        #     put :update, id: @user, params: { "user" => { email: email, password: password } }
-        #     @user.reload
-        #     @user.firstname.should eq(email)
-        #     @user.lastname.should eq(password)
-        #   end
-        
-        #   it "redirects to the updated contact" do
-        #     put :update, id: @user, params: { "user" => { email: Faker::Internet.email, password: Faker::Internet.password } }
-      
-        #     # redirige où tu veux
-        #     response.should redirect_to @user
-        #   end
-        # end
-        
-        # context "with invalid attributes" do
-        #   it "locates the requested @user" do
-        #     put :update, id: @user, params: { "user" => { invalide_magueule } }
-        #     assigns(:user).should eq(@user)      
-        #   end
+        context "with invalid attributes" do
+            it "locates the requested @user" do
+                put :update, params: {
+                    id: @user.id, user: { "user" => { first_name: Faker::Name.first_name }}}
+                assigns(:user).should eq(@user)      
+            end
           
-        #   it "does not change @user's attributes" do
-        #     put :update, id: @user, params: { "user" => { invalide_magueule } }
-        #     @user.reload
-        #     @user.firstname.should_not eq("Jean")
-        #     @user.lastname.should eq("Bon")
-        #   end
+            it "does not change @user's attributes" do
+                first_name = "Joe"
+                last_name = "Doe"
+                username = "JD"
+                put :update, params: {id: @user.id, user: {first_name: first_name, last_name: last_name, username: username}}
+                @user.reload
+                @user.first_name.should_not eq("Joe")
+                @user.last_name.should_not eq("Doe")
+                @user.username.should_not eq("JD")
+            end
           
-        #   it "re-renders the edit method" do
-        #     put :update, id: @user, params: { "user" => { invalide_magueule } }
-        #     response.should render_template :edit
-        #   end
+            it "re-renders the edit method" do
+                first_name = "Joe"
+                last_name = "Doe"
+                username = "JD"
+                put :update, params: {id: @user.id, user: {first_name: first_name, last_name: last_name, username: username}}
+                response.should render_template :edit
+            end
+        end
+    end
+
+    describe 'DELETE destroy' do
+        before :each do
+            @user = User.create(first_name: Faker::Name.first_name, last_name: Faker::Name.last_name, username: Faker::Internet.username(specifier: 5..8))
+        end
+        
+        it "deletes the user" do
+            expect{delete :destroy, params:{:id => @user.id}}.to change(User, :count).by(-1)
+        end
+          
+        it "redirects to users#index" do
+            delete :destroy, params:{id: @user.id}
+            response.should redirect_to users_url
         end
     end
 end
